@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 #define LEN 5
 
 typedef struct node
@@ -20,10 +19,23 @@ typedef struct graph{
     AdjList* list;
 }Graph;
 
+// pilha
 typedef struct stack{
     int value;
     struct stack* next;
 }Stack;
+
+typedef struct visited{
+    int value;
+    struct stack* next;
+}Visited;
+
+//no arvore
+typedef struct noTree{
+    int value;
+    struct noTree* left;
+    struct noTree* right;
+}NoTree;
 
 
 Graph* createGraph(){
@@ -96,20 +108,55 @@ Stack* createStack(){
     return NULL;
 }
 
-Stack* addNodeToStack(Stack* s, int value){
+Stack* appendToStack(Stack* s, int value){
     Stack* new = (Stack*) malloc(sizeof(Stack));
     new->value = value;
     new->next = s;
+
+    return new;
+}
+
+int isNodeInStack(Stack* s, int v){
+    Stack* p = s;
+    int isInStack = 0;
+    while(p != NULL){
+        if(p->value == v){
+            isInStack = 1;
+        }
+        p = p->next;
+    }
+
+    return isInStack;
+}
+
+int getLastNodeFromStack(Stack* s){
+    if(s != NULL){
+        return s->value;
+    }else{
+         return NULL;
+    }
 }
 
 void displayStack(Stack* s){
     Stack* p = s;
+    printf("STack: ");
     while(p!= NULL)
     {
-        printf("%d\n",p->value);
+        printf("%d ",p->value);
         p = p->next;
     }
+    printf("\n");
+}
 
+Stack* StashAllVisited(Stack* s, Visited* v){
+    Stack* p = s;
+    if(p!= NULL){
+
+        Stack* aux = p->next;
+        free(p);
+        p = aux;
+    }
+    return p;
 }
 
 Stack* pop(Stack* s){
@@ -134,23 +181,120 @@ void freeStack(Stack* s){
     free(p);
 }
 
-void DFS(Graph* g){
-    Stack *p;
-    int visited[LEN], visitedIndex = 0;
-    p = createStack();
+Visited* createList(){
+    return NULL;
+}
 
-    // p = addNodeToStack(p, 2);
-    // p = pop(p);
-    // displayStack(p);
-    // freeStack(p);
+Visited* appendToList(Visited* v, int value){
+    Visited* new = (Visited*) malloc(sizeof(Visited));
+    new->value = value;
+    new->next = v;
 
+    return new;
+}
 
-    for(int i = 0.; i<LEN; i++){
-        Node* adj = searchOnGraph(g, i);
-        printf("%d ",adj->v+1);
-        printf("\n");
+void unstacksNoVisitedNodes(Stack* s, Visited* v){
+    Stack* p = v;
+    while(p!= NULL){
+        printf("%d ",p->value);
+        p = p->next;
+    }
+}
+
+void displayList(Visited* s){
+    Visited* p = s;
+    printf("Visited: ");
+    while(p!= NULL)
+    {
+        printf("%d ",p->value);
+        p = p->next;
+    }
+    printf("\n");
+}
+
+int isAllNodeVisited(Visited* v){
+    Visited* p = v;
+    int num=0;
+    while(p!= NULL){
+        num++;
+        p=p->next;
     }
 
+    return num == LEN;
+}
+
+int isNodeVisited(Visited* v, int value){
+    Visited* p = v;
+
+    while(p!= NULL){
+        if(p->value == value){
+            return 1;
+        }
+        p=p->next;
+    }
+
+    return 0;
+}
+
+void freeList(Visited* v){
+    Visited* p = v;
+    while(p!= NULL)
+    {
+        Visited* aux = p->next;
+        free(p);
+        p = aux;
+    }
+    free(p);
+}
+
+void searchForChildrenNodes(Graph* g, Stack* p, Visited* v){
+
+
+
+}
+
+void DFS(Graph* g){
+    Visited* visited = createList();
+    Stack* stack = createStack();
+
+    Node* adj = g->list[0].head;
+    visited = appendToList(visited, 0);
+    while(adj != NULL){
+        if(!isNodeInStack(stack, adj->v)){
+             stack = appendToStack(stack, adj->v);
+        }
+        adj = adj->next;
+    }
+
+    // searchForChildrenNodes(g, stack, visited);
+
+    int hasVisitedNodes = 1;
+
+    while(hasVisitedNodes){
+        int s = getLastNodeFromStack(stack);
+
+        Node* n = g->list[s].head;
+        while(n != NULL){
+
+            if(!isNodeVisited(visited, n->v) && !isNodeInStack(stack,n->v)){
+                // visita o nó não visitado
+                hasVisitedNodes = 1;
+                stack = appendToStack(stack,n->v);
+            }else{
+                    hasVisitedNodes = 0;
+
+
+            }
+            n = n->next;
+        }
+        visited = appendToList(visited,s);
+    }
+
+
+    displayList(visited);
+    displayStack(stack);
+    freeStack(stack);
+    freeList(visited);
 }
 
 
@@ -169,20 +313,14 @@ int main(int argc, char const *argv[])
     g = createEdge(g,2,3);
     g = createEdge(g,3,1);
     g = createEdge(g,3,4);
+    g = createEdge(g,3,2);
     g = createEdge(g,4,0);
     g = createEdge(g,4,1);
     g = createEdge(g,4,3);
     DFS(g);
+
     freeGraph(g);
     /* code */
     return 0;
 }
 
-
-/*
-    v1 -> 2, 5
-    v2 -> 1, 5, 4, 3
-    v3 -> 2, 4
-    v4 -> 2, 5
-    v5 -> 1, 2, 4
-*/

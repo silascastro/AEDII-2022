@@ -77,14 +77,6 @@ Graph* createEdge(Graph* g, int node, int dest){
 
 }
 
-AdjList* searchOnGraph(Graph* g, int index){
-    Node* p = g->list;
-
-    Node* adjList = g->list[index].head;
-    return adjList;
-
-}
-
 void freeGraph(Graph* g){
     if(g!= NULL){
        for(int index = 0; index < LEN; index++){
@@ -137,29 +129,7 @@ int getLastNodeFromStack(Stack* s){
     }
 }
 
-void displayStack(Stack* s){
-    Stack* p = s;
-    printf("STack: ");
-    while(p!= NULL)
-    {
-        printf("%d ",p->value);
-        p = p->next;
-    }
-    printf("\n");
-}
-
-Stack* StashAllVisited(Stack* s, Visited* v){
-    Stack* p = s;
-    if(p!= NULL){
-
-        Stack* aux = p->next;
-        free(p);
-        p = aux;
-    }
-    return p;
-}
-
-Stack* pop(Stack* s){
+Stack* popAll(Stack* s){
     Stack* p = s;
     if(p!= NULL){
 
@@ -247,52 +217,56 @@ void freeList(Visited* v){
     free(p);
 }
 
-void searchForChildrenNodes(Graph* g, Stack* p, Visited* v){
+Stack* addNodesToStack(Graph* g, Stack* p, Visited* v){
 
 
-
+    return;
 }
 
 void DFS(Graph* g){
+
+    int hasVisitedAllNodes = 0;
+
     Visited* visited = createList();
     Stack* stack = createStack();
 
-    Node* adj = g->list[0].head;
     visited = appendToList(visited, 0);
-    while(adj != NULL){
-        if(!isNodeInStack(stack, adj->v)){
-             stack = appendToStack(stack, adj->v);
-        }
-        adj = adj->next;
-    }
+    int index = 0;
 
-    // searchForChildrenNodes(g, stack, visited);
+    while(!hasVisitedAllNodes){
 
-    int hasVisitedNodes = 1;
+        Node* adj = g->list[index].head;
+        int hasChildren = 0;
+        while(adj!= NULL){
+            // printf("%d ",adj->v);
 
-    while(hasVisitedNodes){
-        int s = getLastNodeFromStack(stack);
-
-        Node* n = g->list[s].head;
-        while(n != NULL){
-
-            if(!isNodeVisited(visited, n->v) && !isNodeInStack(stack,n->v)){
-                // visita o nó não visitado
-                hasVisitedNodes = 1;
-                stack = appendToStack(stack,n->v);
-            }else{
-                    hasVisitedNodes = 0;
-
-
+            if(!isNodeInStack(stack,adj->v) && !isNodeVisited(visited,adj->v)){
+                stack = appendToStack(stack,adj->v);
+                hasChildren = 1;
             }
-            n = n->next;
+            adj = adj->next;
         }
-        visited = appendToList(visited,s);
-    }
 
+        if(!isNodeVisited(visited, index)){
+            visited = appendToList(visited, index);
+        }
+
+        if(!hasChildren){
+            stack = popAll(stack);
+            index = 0;
+        }else{
+            index = getLastNodeFromStack(stack);
+        }
+
+
+        if(isAllNodeVisited(visited)){
+            hasVisitedAllNodes = 1;
+        }
+
+
+    }
 
     displayList(visited);
-    displayStack(stack);
     freeStack(stack);
     freeList(visited);
 }
@@ -323,4 +297,3 @@ int main(int argc, char const *argv[])
     /* code */
     return 0;
 }
-

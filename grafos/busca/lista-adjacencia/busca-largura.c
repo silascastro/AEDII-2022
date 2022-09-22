@@ -1,42 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "data.h"
 
 #define LEN 5
-
-typedef struct node
-{
-    int v;
-    int weight;
-    struct no* next;
-}Node;
-
-typedef struct adjList{
-    Node* head;
-}AdjList;
-
-typedef struct graph{
-    int n;
-    AdjList* list;
-}Graph;
-
-// pilha
-typedef struct stack{
-    int value;
-    struct stack* next;
-}Stack;
-
-typedef struct visited{
-    int value;
-    struct stack* next;
-}Visited;
-
-//no arvore
-typedef struct noTree{
-    int value;
-    struct noTree* left;
-    struct noTree* right;
-}NoTree;
-
 
 Graph* createGraph(){
     Graph *g = (Graph*) malloc(sizeof(Graph));
@@ -58,23 +24,53 @@ Node* createNewNode(int dest){
     return new;
 }
 
-Graph* createEdge(Graph* g, int node, int dest){
+Graph* addEdgeToUndirectGraph(Graph* g, int src, int dest){
     Node* p = NULL;
     Node* new_node = createNewNode(dest);
 
-    if(g->list[node].head == NULL){
-        new_node->next = g->list[node].head;
-        g->list[node].head = new_node;
+    if(g->list[src].head == NULL){
+        new_node->next = g->list[src].head;
+        g->list[src].head = new_node;
     }else{
-        p = g->list[node].head;
+        p = g->list[src].head;
         while(p->next != NULL){
             p = p->next;
         }
         p->next = new_node;
     }
 
+    new_node = createNewNode(src);
+    if(g->list[dest].head == NULL){
+        new_node->next = g->list[dest].head;
+        g->list[dest].head = new_node;
+    }else{
+        p = g->list[dest].head;
+        while(p->next != NULL){
+            p = p->next;
+        }
+        p->next = new_node;
+    }
+
+
     return g;
 
+}
+
+void displayGraph(Graph* g){
+    if(g!= NULL){
+       for(int index = 0; index < LEN; index++){
+            Node* adjList = g->list[index].head;
+            printf("v%d: ",index);
+            while (adjList!= NULL)
+            {
+                printf("%d ",adjList->v);
+                Node* p = adjList;
+                adjList = p->next;
+
+            }
+            printf("\n");
+       }
+    }
 }
 
 void freeGraph(Graph* g){
@@ -94,63 +90,6 @@ void freeGraph(Graph* g){
     }
 }
 
-// pilha | busca em profundidade
-
-Stack* createStack(){
-    return NULL;
-}
-
-Stack* appendToStack(Stack* s, int value){
-    Stack* new = (Stack*) malloc(sizeof(Stack));
-    new->value = value;
-    new->next = s;
-
-    return new;
-}
-
-int isNodeInStack(Stack* s, int v){
-    Stack* p = s;
-    int isInStack = 0;
-    while(p != NULL){
-        if(p->value == v){
-            isInStack = 1;
-        }
-        p = p->next;
-    }
-
-    return isInStack;
-}
-
-int getLastNodeFromStack(Stack* s){
-    if(s != NULL){
-        return s->value;
-    }else{
-         return NULL;
-    }
-}
-
-Stack* popAll(Stack* s){
-    Stack* p = s;
-    if(p!= NULL){
-
-        Stack* aux = p->next;
-        free(p);
-        p = aux;
-    }
-    return p;
-}
-
-void freeStack(Stack* s){
-    Stack* p = s;
-    while(p!= NULL)
-    {
-        Stack* aux = p->next;
-        free(p);
-        p = aux;
-    }
-    free(p);
-}
-
 Visited* createList(){
     return NULL;
 }
@@ -161,14 +100,6 @@ Visited* appendToList(Visited* v, int value){
     new->next = v;
 
     return new;
-}
-
-void unstacksNoVisitedNodes(Stack* s, Visited* v){
-    Stack* p = v;
-    while(p!= NULL){
-        printf("%d ",p->value);
-        p = p->next;
-    }
 }
 
 void displayList(Visited* s){
@@ -182,7 +113,7 @@ void displayList(Visited* s){
     printf("\n");
 }
 
-int isAllNodeVisited(Visited* v){
+int getQtyOfNodeVisited(Visited* v){
     Visited* p = v;
     int num=0;
     while(p!= NULL){
@@ -190,7 +121,7 @@ int isAllNodeVisited(Visited* v){
         p=p->next;
     }
 
-    return num == LEN;
+    return num;
 }
 
 int isNodeVisited(Visited* v, int value){
@@ -206,7 +137,7 @@ int isNodeVisited(Visited* v, int value){
     return 0;
 }
 
-void freeList(Visited* v){
+void freeVisitedList(Visited* v){
     Visited* p = v;
     while(p!= NULL)
     {
@@ -217,83 +148,159 @@ void freeList(Visited* v){
     free(p);
 }
 
-Stack* addNodesToStack(Graph* g, Stack* p, Visited* v){
 
-
-    return;
+Queue* createQueue(){
+    return NULL;
 }
 
-void DFS(Graph* g){
+Queue* appendToQueue(Queue* q,int value){
+    Queue* new = (Queue*) malloc(sizeof(Queue));
+    new->value = value;
+    new->next = q;
 
-    int hasVisitedAllNodes = 0;
+    return new;
+}
 
-    Visited* visited = createList();
-    Stack* stack = createStack();
+int isInQueueOrVisitedList(Queue* q,Visited* v, int value){
+    int elementhasBeenVisited = 0;
 
-    visited = appendToList(visited, 0);
-    int index = 0;
+    while(q != NULL){
+        if(q->value == value){
+            elementhasBeenVisited = 1;
+            break;
+        }
+        q = q->next;
+    }
 
-    while(!hasVisitedAllNodes){
-
-        Node* adj = g->list[index].head;
-        int hasChildren = 0;
-        while(adj!= NULL){
-            // printf("%d ",adj->v);
-
-            if(!isNodeInStack(stack,adj->v) && !isNodeVisited(visited,adj->v)){
-                stack = appendToStack(stack,adj->v);
-                hasChildren = 1;
+    if(!elementhasBeenVisited){
+        while(v != NULL){
+            if(v->value == value){
+                elementhasBeenVisited = 1;
+                break;
             }
+            v = v->next;
+        }
+    }
+    return elementhasBeenVisited;
+}
+
+int getFirstNodeFromQueue(Queue* q){
+    if(q != NULL){
+        while(q!= NULL){
+            if(q->next == NULL){
+                return q->value;
+            }
+            q = q->next;
+        }
+    }else{
+         return NULL;
+    }
+}
+
+Queue* removeFromQueue(Queue* q){
+    Queue* p = q;
+    Queue* temp;
+    if(p->next == NULL){
+        free(p);
+        p = NULL;
+        return p;
+    }else{
+        while(p!= NULL){
+            if(p->next->next == NULL){
+                temp = p->next;
+                free(temp);
+                p->next = NULL;
+                break;
+            }
+            p = p->next;
+        }
+    }
+
+    return q;
+}
+
+void freeQueue(Queue* q){
+    Queue* p = q;
+
+     while(p!= NULL){
+         Queue* aux = p->next;
+         free(p);
+         p = aux;
+     }
+
+     free(p);
+}
+
+void displayQueue(Queue* q){
+    Queue* p = q;
+    while(p!= NULL){
+        printf("%d ",p->value);
+        p = p->next;
+    }
+}
+
+
+
+
+//BFS
+
+void BFS(Graph* g){
+    int isAllNodesVisited = 0, index = 0;
+    Queue* q = createQueue();
+    Visited* v = createList();
+
+    v = appendToList(v, 0);
+    while(!isAllNodesVisited){
+        Node* adj = g->list[index].head;
+
+        while(adj != NULL){
+            if(!isInQueueOrVisitedList(q, v, adj->v)){
+                q = appendToQueue(q, adj->v);
+            }
+
             adj = adj->next;
         }
 
-        if(!isNodeVisited(visited, index)){
-            visited = appendToList(visited, index);
-        }
+        if(!isNodeVisited(v, index)){
+            v = appendToList(v, index);
 
-        if(!hasChildren){
-            stack = popAll(stack);
-            index = 0;
-        }else{
-            index = getLastNodeFromStack(stack);
         }
 
 
-        if(isAllNodeVisited(visited)){
-            hasVisitedAllNodes = 1;
+        if(q != NULL){
+            index = getFirstNodeFromQueue(q);
+            q = removeFromQueue(q);
         }
 
+        if(getQtyOfNodeVisited(v) == LEN){
+            isAllNodesVisited = 1;
+        }
 
     }
 
-    displayList(visited);
-    freeStack(stack);
-    freeList(visited);
+    displayList(v);
+    freeVisitedList(v);
+    freeQueue(q);
 }
+
 
 
 
 int main(int argc, char const *argv[])
 {
-    Graph* g;
-    g = createGraph(LEN);
-    g = createEdge(g,0,1);
-    g = createEdge(g,0,4);
-    g = createEdge(g,1,0);
-    g = createEdge(g,1,4);
-    g = createEdge(g,1,3);
-    g = createEdge(g,1,2);
-    g = createEdge(g,2,1);
-    g = createEdge(g,2,3);
-    g = createEdge(g,3,1);
-    g = createEdge(g,3,4);
-    g = createEdge(g,3,2);
-    g = createEdge(g,4,0);
-    g = createEdge(g,4,1);
-    g = createEdge(g,4,3);
-    DFS(g);
+    Graph* g = createGraph();
+    g = addEdgeToUndirectGraph(g,0,1);
+    g = addEdgeToUndirectGraph(g,0,4);
+    g = addEdgeToUndirectGraph(g,1,4);
+    g = addEdgeToUndirectGraph(g,1,3);
+    g = addEdgeToUndirectGraph(g,1,2);
+    g = addEdgeToUndirectGraph(g,2,3);
+    g = addEdgeToUndirectGraph(g,3,4);
+
+     BFS(g);
+
 
     freeGraph(g);
-    /* code */
+
     return 0;
 }

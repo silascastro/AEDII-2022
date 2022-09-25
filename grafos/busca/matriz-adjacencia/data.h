@@ -1,3 +1,20 @@
+
+typedef struct node
+{
+    int v;
+    int weight;
+    struct no* next;
+}Node;
+
+typedef struct adjList{
+    Node* head;
+}AdjList;
+
+typedef struct graph{
+    int n;
+    AdjList* list;
+}Graph;
+
 typedef struct stack{
     int value;
     struct stack* next;

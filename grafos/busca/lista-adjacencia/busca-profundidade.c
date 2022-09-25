@@ -282,7 +282,6 @@ int main(int argc, char const *argv[])
     g = addEdgeToUndirectGraph(g,2,3);
     g = addEdgeToUndirectGraph(g,3,4);
     DFS(g);
-
     freeGraph(g);
     /* code */
     return 0;

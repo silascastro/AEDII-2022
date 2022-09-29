@@ -81,11 +81,23 @@ Graph* addEdgeToDirectGraph(Graph* g, int src, int dest, int weight){
 
     }
 
-
-
-
     return g;
 
+}
+
+Node* getNodeWithLowestWeightFromAdj(Graph* g, int index){
+    Node* adj = g->list[index].head;
+    Node* lowestAdj;
+
+    int lowestWeight = adj->weight;
+    while(adj!= NULL){
+        if(adj->weight<=lowestWeight){
+            lowestAdj = adj;
+        }
+        adj= adj->next;
+    }
+
+    return lowestAdj;
 }
 
 void displayGraph(Graph* g){
@@ -140,9 +152,92 @@ Djikstra* appendToDjikstraList(Djikstra* d, int v, double dist, int prev, int vi
 Djikstra* displayDjikstraList(Djikstra* d){
     Djikstra* p = d;
     while(p!= NULL){
-        printf("previous: %d, distance: %d, vertice: %d, visited: %d\n",p->prev, (p->dist == INFINITY), p->v, p->visited);
+        printf("previous: %d, distance: %lf, vertice: %d, visited: %d\n", p->prev, p->dist, p->v, p->visited);
         p = p->next;
     }
+}
+
+int isNodeVisitedInDjikstraList(Djikstra* d, int value){
+    Djikstra* p = d;
+    int visited = 0;
+    while(p!= NULL){
+
+        if(p->v == value){
+            visited = p->visited;
+        }
+
+        p = p->next;
+    }
+
+    return visited;
+}
+
+Djikstra* getNodeFromDjikstraList(Djikstra* d, int v){
+    Djikstra *p = d;
+
+    while(p != NULL){
+        if(p->v == v){
+            return p;
+        }
+        p = p->next;
+    }
+
+    return NULL;
+}
+
+void setVisitedStatusInDjiskstraList(Djikstra* d, int v){
+    Djikstra *p = d;
+
+    while(p != NULL){
+        if(p->v == v){
+            p->visited = 1;
+            break;
+        }
+        p = p->next;
+    }
+
+
+}
+
+int isAllNodesVisited(Djikstra* d){
+    Djikstra* p = d;
+    int isAllNodesVisited = 1;
+    while(p!= NULL){
+        if(!p->visited){
+            isAllNodesVisited = 0;
+            break;
+        }
+        p = p->next;
+    }
+
+    return isAllNodesVisited;
+}
+
+int getFirstNodeNotVisitedWithLowerWeight(Djikstra* d){
+    Djikstra* p = d;
+
+    int node = p->v;
+    double lowestDist = p->dist;
+
+    while(p!= NULL){
+
+        if((!p->visited)){
+            lowestDist = p->dist;
+            node = p->v;
+        }
+        p = p->next;
+    }
+    return node;
+}
+
+Djikstra* initDjikstraList(Djikstra* d){
+    d = appendToDjikstraList(d, 0, 0,0, 1);
+
+    for(int index = 1; index<LEN; index++){
+        d = appendToDjikstraList(d, index,INFINITY,0,0);
+    }
+
+    return d;
 }
 
 void freeDjikstraList(Djikstra* d){
@@ -154,38 +249,43 @@ void freeDjikstraList(Djikstra* d){
     }
 }
 
+
 void djikstra(Graph* g){
 
     Djikstra* d = createDjikstraList();
+    d = initDjikstraList(d);
 
+    int allNodeshavebeenVisited = 0;
+    Djikstra* p = d;
+    int index = 0;
 
-    d = appendToDjikstraList(d, 0, 0,0, 1);
-    for(int index = 1; index<LEN; index++){
-        d = appendToDjikstraList(d, index,INFINITY,NULL,0);
+    while(!isAllNodesVisited(d)){
+        Node* adj = g->list[index].head;
+        Djikstra* djikstraNode = getNodeFromDjikstraList(d, index), *djikstraEdge;
 
-    }
+        setVisitedStatusInDjiskstraList(d, index);
 
-    displayDjikstraList(d);
-    freeDjikstraList(d);
+        while(adj != NULL){
 
-    /*
-    if(g!= NULL){
-       for(int index = 0; index < LEN; index++){
-            printf("v%d: ",index);
-            Node* adjList = g->list[index].head;
+            djikstraEdge = getNodeFromDjikstraList(d, adj->v);
 
-            while (adjList!= NULL)
+            if(!djikstraEdge->visited &&
+            ((djikstraNode->dist + adj->weight) < djikstraEdge->dist))
             {
-                printf("%d(%d) tem dist %d",adjList->v, adjList->weight, adjList->dist != NULL);
-                Node* p = adjList;
-                adjList = p->next;
+                djikstraEdge->dist =  djikstraNode->dist+adj->weight;
+                djikstraEdge->prev = index;
 
             }
-            printf("\n");
-       }
-    }*/
+            adj = adj->next;
+        }
 
 
+
+        index = getFirstNodeNotVisitedWithLowerWeight(d);
+    }
+    displayDjikstraList(d);
+
+    freeDjikstraList(d);
 }
 
 
